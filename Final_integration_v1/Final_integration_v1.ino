@@ -96,7 +96,7 @@ void setup() {
   if (client.validateConnection()) {
     Serial.print("Connected to InfluxDB: ");
   }else{
-    showStat(252, 0, 189, 2, 2, false);
+    showStat(255, 120, 0, 2, 2, false);
   }
 
 
@@ -196,7 +196,7 @@ void loop() {
     if (!client.writePoint(sensor)) {
         Serial.print("InfluxDB write failed: ");
         Serial.println(client.getLastErrorMessage());
-        showStat(252, 0, 189, 2, 2, false);
+        showStat(255, 120, 0, 2, 2, false);
     }else{
         //show stat for all ok if write is successful
         showStat(0, 0, 255, 10, 1, true);
