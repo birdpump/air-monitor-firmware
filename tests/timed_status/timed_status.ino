@@ -56,4 +56,5 @@ void loop() {
   // normal operation
   showStat(0, 0, 255, 10, 1, true);
   //sensor reading function for testing, not implemented yet
+  delay(2000);
 }
