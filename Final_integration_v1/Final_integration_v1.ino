@@ -108,7 +108,7 @@ void setup() {
   // client buffer will help with conectivity issues
   // buffer set to 2x batch size
   // buffer can we used without batching
-//   client.setWriteOptions(WriteOptions().bufferSize(24));
+  client.setWriteOptions(WriteOptions().bufferSize(24));
 
   //sensairs8 initalize
   // Wait port is open or timeout
@@ -177,7 +177,6 @@ void loop() {
 
   //co2 data
   sensor.co2 = sensor_S8->get_co2();
-  printf("CO2 value = %d ppm\n", sensor.co2);
   sensor.addField("co2", sensor.co2);
 
   //uptime data
