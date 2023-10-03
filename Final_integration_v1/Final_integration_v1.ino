@@ -19,13 +19,6 @@ unsigned long startTime; // Variable to store the start time
 
 #ifdef USE_SOFTWARE_SERIAL
   SoftwareSerial S8_serial(S8_RX_PIN, S8_TX_PIN);
-// #else
-//   #if defined(ARDUINO_ARCH_RP2040)
-//     REDIRECT_STDOUT_TO(Serial)    // to use printf (Serial.printf not supported)
-//     UART S8_serial(S8_TX_PIN, S8_RX_PIN, NC, NC);
-//   #else
-//     HardwareSerial S8_serial(S8_UART_PORT);   
-//   #endif
 #endif
 
 S8_UART *sensor_S8;
@@ -60,30 +53,36 @@ void setup() {
   }
 }
 
-void showStat(int r, int g, int b, int s, int n){
-  startTime = millis(); // Record the start time
+void showStat(int g, int r, int b, int s, int n, bool on) {
+  startTime = millis();  // Record the start time
 
   leds[0].setRGB(g, r, b);
   //values int i = 100; i <= 256; i++
-  for(int t = n; t > 0; t--){
-    for (int i = 150; i <= 256; i++) {
+  for (int t = n; t > 0; t--) {
+    for (int i = 150; i <= 250; i++) {
       int value = pow(2, i / 32.0);
       FastLED.setBrightness(value);
       FastLED.show();
       delay(s);
     }
     //values int i = 256; i >= 100; i--
-    for (int i = 256; i >= 150; i--) {
+    for (int i = 250; i >= 150; i--) {
       int value = pow(2, i / 32.0);
       FastLED.setBrightness(value);
-      FastLED.show();    
+      FastLED.show();
       delay(s);
     }
   }
 
-  unsigned long endTime = millis(); // Record the end time
-  unsigned long duration = endTime - startTime; // Calculate the duration
+  if (!on) {
+    leds[0].setRGB(0, 0, 0);
+    FastLED.show();
+  }
+
+  unsigned long endTime = millis();              // Record the end time
+  unsigned long duration = endTime - startTime;  // Calculate the duration
   Serial.println(duration);
+  delay(3000 - duration);
 }
 
 void loop() {
@@ -91,6 +90,6 @@ void loop() {
   sensor.co2 = sensor_S8->get_co2();
   printf("CO2 value = %d ppm\n", sensor.co2);
 
-  showStat(0, 0, 255, 10, 1);
-  delay(3000);
+  showStat(0, 0, 255, 10, 1, true);
+  delay(2000);
 }
