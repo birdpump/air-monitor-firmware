@@ -135,10 +135,10 @@ void setup() {
 
 
 //showStat funtion will allway take 3000ms
-void showStat(int g, int r, int b, int s, int n, bool on) {
+void showStat(int r, int g, int b, int s, int n, bool on) {
   startTime = millis();  // Record the start time
 
-  leds[0].setRGB(g, r, b);
+  leds[0].setRGB(r, g, b);
   //values int i = 100; i <= 256; i++
   for (int t = n; t > 0; t--) {
     for (int i = 150; i <= 250; i++) {
