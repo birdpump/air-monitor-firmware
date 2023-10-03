@@ -183,7 +183,7 @@ void loop() {
   pointDevice.addField("uptime", millis());
 
 
-  Serial.print("Writing: ");
+  Serial.print("Writing Data");
   Serial.println(client.pointToLineProtocol(sensor));
 
   // If no Wifi signal, try to reconnect it
