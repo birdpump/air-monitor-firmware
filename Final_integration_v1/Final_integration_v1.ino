@@ -65,7 +65,7 @@ S8_sensor sensor;
 
 
 // create Data point
-Point sensor("air_monitor");
+Point dataSensor("air_monitor");
 
 
 void setup() {
@@ -86,9 +86,9 @@ void setup() {
   }
 
   // Add constant tags - only once
-  sensor.addTag("device", DEVICE);
-  sensor.addTag("SSID", WiFi.SSID());
-  sensor.addTag("id", "sensor-1");
+  dataSensor.addTag("device", DEVICE);
+  dataSensor.addTag("SSID", WiFi.SSID());
+  dataSensor.addTag("id", "sensor-1");
 
   configTzTime("PST8PDT", "pool.ntp.org", "time.nis.gov");
 
@@ -170,21 +170,21 @@ void showStat(int r, int g, int b, int s, int n, bool on) {
 
 
 void loop() {
-  sensor.clearFields();
+  dataSensor.clearFields();
 
   //wifi rssi data
-  sensor.addField("rssi", WiFi.RSSI());
+  dataSensor.addField("rssi", WiFi.RSSI());
 
   //co2 data
   sensor.co2 = sensor_S8->get_co2();
-  sensor.addField("co2", sensor.co2);
+  dataSensor.addField("co2", sensor.co2);
 
   //uptime data
-  pointDevice.addField("uptime", millis());
+  dataSensor.addField("uptime", millis());
 
 
   Serial.print("Writing Data");
-  Serial.println(client.pointToLineProtocol(sensor));
+  Serial.println(client.pointToLineProtocol(dataSensor));
 
   // If no Wifi signal, try to reconnect it
   if (wifiMulti.run() != WL_CONNECTED) {
@@ -193,7 +193,7 @@ void loop() {
   }else{
     //check influxdbs connenction
     // Write point
-    if (!client.writePoint(sensor)) {
+    if (!client.writePoint(dataSensor)) {
         Serial.print("InfluxDB write failed: ");
         Serial.println(client.getLastErrorMessage());
         showStat(255, 120, 0, 2, 2, false);
@@ -201,8 +201,8 @@ void loop() {
         //show stat for all ok if write is successful
         showStat(0, 0, 255, 10, 1, true);
     }
-    }
   }
+  
 
   
   //delay to make function run 5 seconds
