@@ -30,7 +30,7 @@ ESP8266WiFiMulti wifiMulti;
 // WiFi password
 #define WIFI_PASSWORD "###########"
 // InfluxDB  server url. Don't use localhost, always server name or ip address.
-// E.g. http://192.168.1.48:8086 (In InfluxDB 2 UI -> Load Data -> Client Libraries), 
+// E.g. http://192.168.1.48:8086 (In InfluxDB 2 UI -> Load Data -> Client Libraries),
 #define INFLUXDB_URL "http://pve-air-server:8086"
 // InfluxDB 2 server or cloud API authentication token (Use: InfluxDB UI -> Load Data -> Tokens -> <select token>)
 #define INFLUXDB_TOKEN "emlKy6kUmHULg93RjDJIIno6tJkXHThG9j-zIUWTjdnSo3ujhuLfvV4OO77fdywUwEadsAjHjwD-RUdjwSsIzQ=="
@@ -38,7 +38,7 @@ ESP8266WiFiMulti wifiMulti;
 #define INFLUXDB_ORG "cvhs"
 // InfluxDB 2 bucket name (Use: InfluxDB UI -> Load Data -> Buckets)
 #define INFLUXDB_BUCKET "cvhs-main"
-// InfluxDB v1 database name 
+// InfluxDB v1 database name
 //#define INFLUXDB_DB_NAME "database"
 // InfluxDB client instance
 InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN);
@@ -49,14 +49,14 @@ InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKE
 #define DEBUG_BAUDRATE 115200
 
 #if (defined USE_SOFTWARE_SERIAL || defined ARDUINO_ARCH_RP2040)
-  #define S8_RX_PIN D7         // Rx pin which the S8 Tx pin is attached to (change if it is needed)
-  #define S8_TX_PIN D5         // Tx pin which the S8 Rx pin is attached to (change if it is needed)
+#define S8_RX_PIN D7  // Rx pin which the S8 Tx pin is attached to (change if it is needed)
+#define S8_TX_PIN D5  // Tx pin which the S8 Rx pin is attached to (change if it is needed)
 // #else
 //   #define S8_UART_PORT  1     // Change UART port if it is needed
 #endif
 
 #ifdef USE_SOFTWARE_SERIAL
-  SoftwareSerial S8_serial(S8_RX_PIN, S8_TX_PIN);
+SoftwareSerial S8_serial(S8_RX_PIN, S8_TX_PIN);
 #endif
 
 S8_UART *sensor_S8;
@@ -95,15 +95,15 @@ void setup() {
   // Check server connection
   if (client.validateConnection()) {
     Serial.print("Connected to InfluxDB: ");
-  }else{
+  } else {
     showStat(255, 120, 0, 2, 2, false);
   }
 
 
 
-  // client batch size 
+  // client batch size
   // 12 will cause update every minute
-//   client.setWriteOptions(WriteOptions().batchSize(12));
+  //   client.setWriteOptions(WriteOptions().batchSize(12));
 
   // client buffer will help with conectivity issues
   // buffer set to 2x batch size
@@ -125,11 +125,11 @@ void setup() {
   sensor_S8->get_firmware_version(sensor.firm_version);
   int len = strlen(sensor.firm_version);
   if (len == 0) {
-      Serial.println("SenseAir S8 CO2 sensor not found!");
-      while (1) { 
-        showStat(252, 0, 189, 2, 2, false);
-        delay(2000);
-      };
+    Serial.println("SenseAir S8 CO2 sensor not found!");
+    while (1) {
+      showStat(252, 0, 189, 2, 2, false);
+      delay(2000);
+    };
   }
 }
 
@@ -190,21 +190,21 @@ void loop() {
   if (wifiMulti.run() != WL_CONNECTED) {
     Serial.println("Wifi connection lost");
     showStat(255, 0, 0, 2, 2, false);
-  }else{
+  } else {
     //check influxdbs connenction
     // Write point
     if (!client.writePoint(dataSensor)) {
-        Serial.print("InfluxDB write failed: ");
-        Serial.println(client.getLastErrorMessage());
-        showStat(255, 120, 0, 2, 2, false);
-    }else{
-        //show stat for all ok if write is successful
-        showStat(0, 0, 255, 10, 1, true);
+      Serial.print("InfluxDB write failed: ");
+      Serial.println(client.getLastErrorMessage());
+      showStat(255, 120, 0, 2, 2, false);
+    } else {
+      //show stat for all ok if write is successful
+      showStat(0, 0, 255, 10, 1, true);
     }
   }
-  
 
-  
+
+
   //delay to make function run 5 seconds
   delay(2000);
 }
