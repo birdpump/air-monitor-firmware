@@ -7,15 +7,15 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
-#define DHTPIN D3
+#define DHTPIN D1
 #define DHTTYPE    DHT11
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 // fully works in theory lol
 
 // connect led to pin D6
-// senseair TX = D5
-// senseair RX = D7
+// senseair TX = D1
+// senseair RX = D2
 
 
 //showStat counter and fastled config
@@ -23,20 +23,14 @@ CRGB leds[1];
 unsigned long startTime;
 
 
-//influxdb config
-#if defined(ESP32)
-#include <WiFiMulti.h>
-WiFiMulti wifiMulti;
-#define DEVICE "ESP32"
-#elif defined(ESP8266)
-#include <ESP8266WiFiMulti.h>
-ESP8266WiFiMulti wifiMulti;
-#define DEVICE "ESP8266"
-#endif
-// WiFi AP SSID
-#define WIFI_SSID "birdpump-cisco"
-// WiFi password
-#define WIFI_PASSWORD "ggfdlkgg4"
+#include <SPI.h>
+#include <ESP8266WiFi.h>
+#include <ENC28J60lwIP.h>
+#define CSPIN 16
+ENC28J60lwIP eth(CSPIN);
+byte mac[] = {0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02};
+
+
 // InfluxDB  server url. Don't use localhost, always server name or ip address.
 // E.g. http://192.168.1.48:8086 (In InfluxDB 2 UI -> Load Data -> Client Libraries),
 #define INFLUXDB_URL "http://10.0.0.63:8086"
@@ -57,8 +51,8 @@ InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKE
 #define DEBUG_BAUDRATE 115200
 
 #if (defined USE_SOFTWARE_SERIAL || defined ARDUINO_ARCH_RP2040)
-#define S8_RX_PIN D7  // Rx pin which the S8 Tx pin is attached to (change if it is needed)
-#define S8_TX_PIN D5  // Tx pin which the S8 Rx pin is attached to (change if it is needed)
+#define S8_RX_PIN D2  // Rx pin which the S8 Tx pin is attached to (change if it is needed)
+#define S8_TX_PIN D3  // Tx pin which the S8 Rx pin is attached to (change if it is needed)
 // #else
 //   #define S8_UART_PORT  1     // Change UART port if it is needed
 #endif
@@ -86,17 +80,30 @@ void setup() {
   leds[0].setRGB(0, 255, 0);
   FastLED.show();
 
-  // Connect WiFi
-  Serial.println("Connecting to WiFi");
-  WiFi.mode(WIFI_STA);
-  wifiMulti.addAP(WIFI_SSID, WIFI_PASSWORD);
-  while (wifiMulti.run() != WL_CONNECTED) {
+
+  SPI.begin();
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setFrequency(4000000);
+
+  eth.setDefault(); // use ethernet for default route
+  int present = eth.begin(mac);
+  if (!present) {
+    Serial.println("no ethernet hardware present");
+    while(1);
+  }
+  
+  Serial.print("connecting ethernet");
+  while (!eth.connected()) {
     Serial.print(".");
     showStat(0, 255, 0, 2, 2, true);
   }
+  Serial.println();
+  Serial.print("ethernet ip address: ");
+  Serial.println(eth.localIP());
 
   // Add constant tags - only once
-  dataSensor.addTag("device", DEVICE);
+  dataSensor.addTag("device", "esp8266_ethernet");
   dataSensor.addTag("id", "sensor-1");
 
   configTzTime("PST8PDT", "pool.ntp.org", "time.nis.gov");
@@ -172,7 +179,6 @@ void showStat(int r, int g, int b, int s, int n, bool on) {
 
   unsigned long endTime = millis();              // Record the end time
   unsigned long duration = endTime - startTime;  // Calculate the duration
-  Serial.println(duration);
   delay(3000 - duration);
 }
 
@@ -181,8 +187,6 @@ void showStat(int r, int g, int b, int s, int n, bool on) {
 void loop() {
   dataSensor.clearFields();
 
-  //wifi rssi data
-  dataSensor.addField("rssi", WiFi.RSSI());
 
   //co2 data
   sensor.co2 = sensor_S8->get_co2();
@@ -217,7 +221,7 @@ void loop() {
   Serial.println(client.pointToLineProtocol(dataSensor));
 
   // If no Wifi signal, try to reconnect it
-  if (wifiMulti.run() != WL_CONNECTED) {
+  if (!eth.connected()) {
     Serial.println("Wifi connection lost");
     showStat(255, 0, 0, 2, 2, false);
   } else {
